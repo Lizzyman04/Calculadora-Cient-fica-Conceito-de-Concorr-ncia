@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html class="client-nojs" lang="en" dir="ltr">
+<head>
+<meta charset="utf-8"/>
+<!-- #BeginEditable "doctitle" --><title>Jep Documentation - Threads</title><!-- #EndEditable --> 
+<link rel="stylesheet" type="text/css" href="main.css" title="style1" />
+</head>
+
+<body bgcolor="#ffffff">
+
+<!-- NAVIGATION ======================================================= -->
+<div id="navcontainer"> 
+  <ul>
+    <li><a href="../javadoc/index.html" target="_blank">JavaDoc <img src="img/new-window-icon.gif" alt="new window" width="15" height="11" /></a></li>
+  </ul>
+  <h1>Jep Java</h1>
+  <ul>
+    <li><a href="index.html">Introduction</a></li>
+    <li><a href="usage.html">Basic Usage</a></li>
+    <li><a href="variables.html">Variables</a></li>
+    <li><a href="types.html">Data types</a></li>
+    <li><a href="operators.html">Operators</a></li>
+    <li><a href="functions.html">Functions</a></li>
+    <li><a href="customfunctions.html">Custom Functions</a></li>
+    <li><a href="bigdecimal.html">BigDecimal</a></li>
+    <li><a href="modules.html">Modules</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+    <li><a href="migrate.html">Migration</a></li>
+    <li><a href="version.html">Version History</a></li>
+  </ul>
+  <h1>Advanced Features</h1>
+  <ul>
+    <li><a href="manipulating.html">Manipulating Expressions</a></li>
+    <li><a href="components.html">Components</a></li>
+    <li><a href="confparser.html">Configurable Parser</a></li>
+    <li><a href="serialization.html">Serialization</a></li>
+    <li><a href="threads.html">Threads</a></li>
+    <li><a href="localization.html">Localization</a></li>
+    <li><a href="grammar.html">Grammar</a></li>
+    <li><a href="advanced.html">Other advanced features</a></li>
+  </ul>
+  
+<!-- 
+	<h1>Extensions</h1>
+		<ul>
+		<li><a href="extensions/index.html">Overview</a></li>
+        <li><b>Type system and evaluation</b></li>
+		<li><a href="extensions/field.html">Fields</a></li>
+		<li><a href="extensions/matrix.html">Matrices</a></li>
+		<li><a href="extensions/fastreal.html">Fast eval real</a></li>
+		<li><a href="extensions/fastmatrix.html">Fast eval matrices</a></li>
+        <li><b>Symbolic operations</b></li>
+		<li><a href="extensions/cleaner.html">Expression cleaner</a></li>
+		<li><a href="extensions/polynomials.html">Polynomials</a></li>
+        <li><a href="extensions/rewrite.html">Rewrite expressions</a></li>
+		<li><a href="extensions/xjep.html">XJep Utilities</a></li>
+        <li><a href="extensions/djep.html">Differentiation</a></li>
+        <li><b>Other features</b></li>
+		<li><a href="extensions/structure.html">Structured programming</a></li>
+		<li><a href="extensions/lambda.html">Lambda functions</a></li>
+		<li><a href="extensions/mathml.html">MathML conversion</a></li>
+		<li><a href="extensions/statistical.html">Statistical functions</a></li>
+		<li><a href="extensions/version.html">Version History</a></li>
+		</ul>
+-->
+    
+</div>
+<!-- CENTER CONTENT ================================================== -->
+<div id="centercontent">
+
+
+<!-- #BeginEditable "Text" --> 
+
+<!-- 
+<pre>
+package com.singularsys.exttests.autogen;
+
+
+import org.junit.Test;
+
+import com.singularsys.jep.Jep;
+
+@SuppressWarnings("unused")
+public class ThreadDocTest {
+
+  @Test
+  public void test0() throws Exception {
+  	ThreadRunner tr = new ThreadRunner();
+  	tr.go("x^2",5);
+  }
+
+  @Test
+  public void test1() throws Exception {
+  	ThreadRunner2 tr = new ThreadRunner2();
+  	tr.go("x^2",5);
+  }
+
+}
+</pre>
+ -->
+
+
+
+<h1><a id="top"></a>Threads</h1>
+	
+<p>
+On a multi-processor machine you may wish to
+evaluate the same expression, or set of expressions, in multiple threads.
+There are two main ways of evaluation in multiple threads:
+</p>
+<ol>
+<li>Use the <code>ThreadSafeEvaluator</code> which can use the same expression in multiple threads.</li>
+<li>Use <code>ImportationVisitor</code> to give each thread its own copy of an expression.</li>
+</ol>
+<p>In both cases each thread will need its own Jep instance. Each Jep instance will have its own <code>Evaluator</code>
+and <code>VaraibleTable</code> but may share other components. The <code>
+<a href="../javadoc/com/singularsys/jep/misc/LightweightComponentSet.html">LightweightComponentSet</a></code> is an easy way
+to create a Jep instance with minimal memory footprint. The second technique is slightly faster.</p>
+
+<h2>Using <code>ThreadSafeEvaluator</code></h2>
+<p>
+Normally variables are evaluated by using a direct reference from a <code>Node</code> to a <code>Variable</code> object.  
+This would not be thread safe as one thread might change the value of a variable.
+With the <a href="../javadoc/com/singularsys/jep/misc/threadsafeeval/ThreadSafeEvaluator.html">ThreadSafeEvaluator</a>
+each thread has its own <code>VariableTable</code> and when the evaluator encounters a variable node in an expression 
+it looks up its name in the <code>VariableTable</code>, 
+effectively performing a hashtable lookup and preserving thread independence.
+</p>
+
+<p> 
+The Jep instance needs to be set up with</p>
+<!--
+<pre>
+/*
+</pre>
+-->
+<pre class="codebox">
+// create a Jep instance with the ThreadSafeEvaluator
+Jep baseJep = new Jep(new ThreadSafeEvaluator());
+        
+// use thread-safe versions of the assignment and element-of operators
+baseJep.getOperatorTable().getAssign().setPFMC(new ThreadSafeAssign());
+baseJep.getOperatorTable().getEle().setPFMC(new ThreadSafeEle());
+
+// use thread optimized version of the rand function
+baseJep.addFunction("rand", new ThreadSafeRandom());
+
+</pre>
+<!--
+<pre>
+*/
+</pre>
+-->
+<p>
+Each child thread would be set up with
+</p>
+<!--
+<pre>
+/*
+</pre>
+-->
+<pre class="codebox">
+// create a child Jep instance
+Jep childJep = new Jep(new LightWeightComponentSet(baseJep));
+</pre>   
+<!--
+<pre>
+*/
+</pre>
+-->
+   
+<p>A full example is</p>
+<!-- 
+SETTESTFILE ThreadRunner.java
+<pre>
+package com.singularsys.exttests.autogen;
+</pre>
+-->
+<pre class="codebox">
+import com.singularsys.jep.Jep;
+import com.singularsys.jep.JepException;
+import com.singularsys.jep.Variable;
+import com.singularsys.jep.misc.LightWeightComponentSet;
+import com.singularsys.jep.misc.threadsafeeval.ThreadSafeAssign;
+import com.singularsys.jep.misc.threadsafeeval.ThreadSafeEle;
+import com.singularsys.jep.misc.threadsafeeval.ThreadSafeEvaluator;
+import com.singularsys.jep.parser.Node;
+        
+public class ThreadRunner {
+
+    // Setup and run multiple threads using the same expression
+    public void go(String expression, int nThreads) throws JepException {
+        // create a Jep instance with the ThreadSafeEvaluator
+        Jep baseJep = new Jep(new ThreadSafeEvaluator());
+        
+        // use thread-safe versions of the assignment and element-of operators
+        baseJep.getOperatorTable().getAssign().setPFMC(new ThreadSafeAssign());
+        baseJep.getOperatorTable().getEle().setPFMC(new ThreadSafeEle());
+        
+        // Parse a node in the base Jep instance
+        Node baseNode = baseJep.parse(expression);
+             
+        // create a number of threads each with a different value for x
+        EvaluationThread threads[] = new EvaluationThread[nThreads];
+        for(int i=0; i&lt;nThreads; ++i) {
+            threads[i] = new EvaluationThread(baseJep,baseNode,"x", 
+                 Math.PI * i / nThreads );
+        }
+        
+        // run the threads each with a different value for x
+        for(int i=0; i&lt;nThreads; ++i) {
+            threads[i].start();
+        }
+
+        // wait for all threads to finish and print results
+        for(int i=0; i&lt;nThreads; ++i) {
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+            }
+            System.out.println("Thread "+i+" value "
+              + threads[i].varValue+" result "+threads[i].result);
+        }
+    }
+        
+    // Class to evaluate an expression in a thread
+    class EvaluationThread extends Thread {
+        Jep childJep;
+        Node childNode;
+        Variable childVar;
+        double varValue;
+        double result;
+        
+        // set up the tread before running 
+        EvaluationThread(Jep baseJep, Node baseNode,
+               String varName, double value) throws JepException {
+            // create a child Jep instance
+            childJep = new Jep(new LightWeightComponentSet(baseJep));
+            // just use the baseNode node
+            childNode = baseNode;
+            // child copy of variable
+            childVar = childJep.addVariable(varName);
+            varValue = value;
+        }
+        
+        // Run the thread
+        @Override
+        public void run() {
+            try {
+                // set variable value
+            	childVar.setValue(varValue);
+                // Evaluate the expression
+                Object res = childJep.evaluate(childNode);
+                result = ((Double) res);
+            } catch (JepException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+   }
+}           
+</pre>
+
+<h2>Using <code>ImportationVisitor</code></h2>
+<p>
+The <a href="../javadoc/com/singularsys/jep/misc/threadsafeeval/ImportationVisitor.html">ImportationVisitor</a>
+can import an expression from one jep instance to another</p>
+<!--
+<pre>
+/*
+</pre>
+-->
+<pre class="codebox">
+  ImportationVisitor iv = new ImportationVisitor(Jep childJep);
+  Node childNode = iv.deepCopy(baseNode); 
+</pre>
+<!--
+<pre>
+*/
+</pre>
+-->
+
+<p>
+This makes a copy of the expression changing references from one <code>VariableTable</code> to another.
+The new expression in <code>childNode</code> can then be evaluated using any evaluator.</p>
+<p>The code to use this is very similar to the above, apart from simpler Jep construction, and the
+line to import the node.</p> 
+<!-- 
+SETTESTFILE ThreadRunner2.java
+<pre>
+package com.singularsys.exttests.autogen;
+</pre>
+-->
+<pre class="codebox">
+import com.singularsys.jep.EvaluationException;
+import com.singularsys.jep.Jep;
+import com.singularsys.jep.JepException;
+import com.singularsys.jep.Variable;
+import com.singularsys.jep.misc.LightWeightComponentSet;
+import com.singularsys.jep.misc.threadsafeeval.ThreadSafeRandom;
+import com.singularsys.jep.parser.Node;
+import com.singularsys.jep.walkers.ImportationVisitor;
+
+        
+public class ThreadRunner2 {
+
+    // Setup and run multiple threads using the same expression
+    public void go(String expression, int nThreads) throws JepException {
+        // create a standard Jep
+        <b>Jep baseJep = new Jep();</b>
+
+        // use thread optimized version of the rand function
+        baseJep.addFunction("rand", new ThreadSafeRandom());
+                
+        // Parse a node in the base Jep instance
+        Node baseNode = baseJep.parse(expression);
+             
+        // create a number of threads each with a different value for x
+        EvaluationThread threads[] = new EvaluationThread[nThreads];
+        for(int i=0; i&lt;nThreads; ++i) {
+            threads[i] = new EvaluationThread(baseJep,baseNode,"x", 
+                             Math.PI * i / nThreads);
+        }
+
+        // run the threads each with a different value for x
+        for(int i=0; i&lt;nThreads; ++i) {
+            threads[i].start();
+        }
+        
+        // wait for all threads to finish and print results
+        for(int i=0; i&lt;nThreads; ++i) {
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+            }
+            System.out.println("Thread "+i+" value "
+              + threads[i].varValue+" result "+threads[i].result);            
+        }
+    }
+        
+    // Class to evaluate an expression in a thread
+    class EvaluationThread extends Thread {
+        Jep childJep;
+        Node childNode;
+        Variable childVar;
+        double varValue;
+        double result;
+        
+        // set up the tread before running 
+        EvaluationThread(Jep baseJep, Node baseNode, 
+              String varName, double value) throws JepException {
+            // create a child Jep instance
+            <b>childJep = new Jep(new LightWeightComponentSet(baseJep));</b>
+            // use a child copy of expression
+            <b>ImportationVisitor iv = new ImportationVisitor(childJep);</b>
+            <b>childNode = iv.deepCopy(baseNode);</b>
+            // child copy of variable
+            childVar = childJep.addVariable(varName);
+            varValue = value;
+        }
+        
+        // Run the thread
+        @Override
+        public void run() {
+            try {
+                // set the variable value
+                childVar.setValue(varValue);
+                // Evaluate the expression
+                Object res = childJep.evaluate(childNode);
+                result = ((Double) res);
+            } catch (EvaluationException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+   }
+}           
+</pre>
+
+<p>This method does not require special versions of the assignment and element of operators. 
+If the <code>rand()</code> function is used then performance is improved by using the  
+<a href="../javadoc/com/singularsys/jep/misc/threadsafeeval/ThreadSafeRandom.html">ThreadSafeRandom</a>.
+</p>
+<p>
+A slight variation of the above technique is to use a 
+<a href="../javadoc/com/singularsys/jep/walkers/SerializableExpression.html">SerializableExpression</a>.
+This can handle much longer expressions than <code>ImportationVisitor</code>. To create a child copy of a node use
+</p>
+<!--
+<pre>
+/*
+</pre>
+-->
+<pre class="codebox">
+SerializableExpression se = new SerializableExpression(baseNode);
+childNode = se.toNode(childJep);
+</pre>
+<!--
+<pre>
+*/
+</pre>
+-->
+
+<p>
+See the <a href="serialization.html">Serialization</a> help page for more details. </p>
+<h3>Light-weight Jep instances</h3>
+<p>
+Creation of new Jep instances can have a considerable memory footprint,
+a Jep instance with a StandardParser takes about 56kB bytes for
+a Jep instance with a configurable parser takes about 14kB bytes.
+Its possible to create a light-weight Jep instance which reuses
+components from an existing Jep instance, such instances only take 1kB.
+All <a href="../javadoc/com/singularsys/jep/JepComponent.html">JepComponent</a>s have
+a <code>getLightWeightInstance()</code> method which return an instance suitable for
+use in multiple threads. Sometimes they just return <code>this</code> so the same instance is used,
+sometime a new instance is created and sometimes <code>null</code> is returned
+for components like the parser which are not needed in separate threads.
+</p>
+<p>
+The <code><a href="../javadoc/com/singularsys/jep/misc/LightWeightComponentSet.html">LightWeightComponentSet</a></code>
+returns a new set of components with no parsing or printing facilities,
+and copies of the VariableTable and Evaluator so they safe to
+uses in multiple threads. It can be used to create a new Jep instance for use in a new thread.
+</p>
+<!--
+<pre>
+/*
+</pre>
+-->
+<pre class="codebox">
+Jep j = new Jep();
+ComponentSet cs = new LightWeightComponentSet(j);
+Jep lwj = new Jep(cs); 
+</pre>
+<!--
+<pre>
+*/
+</pre>
+-->
+<p>
+The above code will create copies of all variables. The <code>LightWeightComponentSet(Jep jep,boolean copyConstants)</code> constructor
+can be used to just copy constants or leave the table empty. 
+</p>
+
+<p>Most operators and functions like <code>x+y</code> or <code>sin(x)</code> work fine across multiple threads
+and to simplify implementation the <code>LightWeightComponentSet</code> 
+assume all functions and operators are thread safe
+just uses the same instances of the <code>FunctionTable</code>, <code>OperatorTable</code>
+and all underlying functions. However some functions, especially those which have side effects, 
+may not be thread safe. Starting in version 4.0 such functions can be marked with the
+<code><a href="../javadoc/com/singularsys/jep/JepComponent.html">JepComponent</a></code> interface and
+implement its <code>getLightWeightInstance()</code> to return a thread-safe copy of the function.
+<p>
+This feature is used by the <code>shallowCopy()</code> methods of
+<code><a href="../javadoc/com/singularsys/jep/FunctionTable.html">FunctionTable</a></code>, 
+<code><a href="../javadoc/com/singularsys/jep/OperatorTableI.html">OperatorTableI</a></code> and all sub-classes.
+This method will create new instance of the table and copies all functions and
+operators into the new table calling the
+<code>getLightWeightInstance()</code> method when present. 
+<p>
+The <code><a href="../javadoc/com/singularsys/jep/misc/MediumWeightComponentSet.html">MediumWeightComponentSet</a></code>
+works like the LightWeightComponentSet but ensures thread safe copies of functions are used when needed.
+<!--
+<pre>
+/*
+</pre>
+-->
+<pre class="codebox">
+Jep j = new Jep();
+ComponentSet cs = new MediumWeightComponentSet(j);
+Jep mwj = new Jep(cs); 
+</pre>
+<!--
+<pre>
+*/
+</pre>
+-->
+
+<table class="clean">
+<caption>Standard return values for the getLightWeightInstance() and shallowCopy() method of various Jep components.
+</caption>
+<tr><th>Component</th><th>getLightWeightInstance()</th><th>shallowCopy()</th></tr>
+<tr><td>Parser</td><td>null</td><td>-</td></tr>
+<tr><td>Evaluator</td><td>new instance<td>-</tr>
+<tr><td>VariableTable<td>new instance, with an empty variables table<td>-</tr>
+<tr><td>FunctionTable<td>this, identical instances of all functions<td>New table with 
+new instances for PFMC's implementing JepComponent and same instances of other functions.</td></tr>
+<tr><td>OperatorTable<td>this, identical instances of all operators<td>New table created with 
+new instances created for Operators whose PFMC's implementing JepComponent, and
+same instances of other operators.</td></tr>
+<tr><td>VariableFactory<td>this<td>-</td></tr>
+<tr><td>NumberFactory<td>this<td>-</td></tr>
+<tr><td>NodeFactory<td>new instance</td><td>-</td></tr>
+<tr><td>PrintVisitor<td>new instance</td><td>-</td></tr>
+</table>
+
+<p>
+There are two special classes providing do-nothing implementations with minimal footprint. 
+These are both accessed by singleton static fields:
+<a href="../javadoc/com/singularsys/jep/misc/NullParser.html#NULL_PARSER">NullParser.NULL_PARSER</a>
+and <a href="../javadoc/com/singularsys/jep/PrintVisitor.html#NULL_PRINT_VISITOR">PrintVisitor.NULL_PRINT_VISITOR</a>.
+</p>
+
+<h3>Example applications</h3>
+<p>
+Two diagnostic applications
+<a href="../javadoc/com/singularsys/jepexamples/diagnostics/ThreadSafeSpeedTest.html">com.singularsys.jepexamples.diagnostics.ThreadSafeSpeedTest</a>
+<a href="../javadoc/com/singularsys/jepexamples/diagnostics/ThreadSpeedTest.html">com.singularsys.jepexamples.diagnostics.ThreadSpeedTest</a>
+are available for testing the two different approaches. The first uses the <code>ThreadSafeEvaluator</code> and the second
+uses the <code>ImportationVisitor</code>. Both evaluate the same expression with half a million different values and compare the 
+results when the work is split over multiple threads. Results will depend on the number of processors available and other tasks running on the system.
+</p>
+<p>
+The 
+<a href="../javadoc/com/singularsys/jeptests/system/ThreadTest.html">com.singularsys.jeptests.system.ThreadTest</a>
+runs a number of JUnit tests on the system, including the examples in this page.
+</p>
+<p>
+The <a href="./javadoc/com/singularsys/jepexamples/applets/Fractal.html">Fractal</a> application/applet calculates fractal images
+using Light-weight Jep instances and the importationVisitor. 
+
+<!-- FOOTER ========================================================== -->
+  <div id="footer"> <a href="http://www.singularsys.com/jep/dist-bugreport.php">Report 
+    bugs / documentation errors</a><br/>
+<br/>
+    &copy; 2021 <a href="http://www.singularsys.com" target="_blank">Singular 
+    Systems</a> </div>
+</div> <!-- centercontent -->
+
+</body>
+<!-- #EndTemplate --></html>
