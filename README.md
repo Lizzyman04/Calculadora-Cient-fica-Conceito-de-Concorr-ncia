@@ -29,7 +29,7 @@ A calculadora é afiada e possibilita principalmente:
 
 A concorrência foi aplicada na renderização de expressões LaTeX, possibilitando o cálculo síncrono do resultado, sem a necessidade de aguardar a expressão renderizada. É pique, é clique, é cálculo na velocidade da luz!
 
-Se você é da área e sente aquela vontade de dar aquele "tapinha no código", sinta-se à vontade para clonar, bifurcar ou abrir uma issue se algo não estiver "redondo". Dê uma olhada nos pacotes de dependência; quem sabe podemos trocar uns parafusos e melhorar ainda mais essa máquina de calcular?
+Se você é da área e sente aquela vontade de dar aquele "tapinha no código", sinta-se à vontade para clonar, bifurcar ou abrir uma [issue](issues) se algo não estiver "redondo". Dê uma olhada nos pacotes de dependência; quem sabe podemos trocar uns parafusos e melhorar ainda mais essa máquina de calcular?
 
 ### Keywords
 Java, SwingWorker, Netbeans, Programação Concorrente, LaTeX, Renderização Gráfica, Sintaxe Matemática, Calculadora Científica.
