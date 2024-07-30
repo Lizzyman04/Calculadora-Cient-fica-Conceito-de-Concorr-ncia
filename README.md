@@ -17,5 +17,6 @@ Este projeto apresenta uma calculadora  desenvolvida em Java, destacando a utili
 - **jlatexmath-font-cyrillic-1.0.7:** Fonte cyrillic para a biblioteca jlatexmath.
 - **jlatexmath-font-greek-1.0.7:** Fonte grego para a biblioteca jlatexmath.
 
-**Desenvolvido por Arlindo
-Email: arlindoabdullm@gmail.com**
+**Desenvolvido por Arlindo**
+
+**Email: arlindoabdullm@gmail.com**
